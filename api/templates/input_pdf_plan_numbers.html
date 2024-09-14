@@ -1,0 +1,18 @@
+<h1>Enter Plan Numbers for Each Line</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <div>
+        <label for="id_can1">Can1 Plan Numbers:</label>
+        {{ form.can1 }}
+    </div>
+    <div>
+        <label for="id_hydro">Hydro Plan Numbers:</label>
+        {{ form.hydro }}
+    </div>
+    <div>
+        <label for="id_line3">Line3 Plan Numbers:</label>
+        {{ form.line3 }}
+    </div>
+    <button type="submit">Submit</button>
+</form>
