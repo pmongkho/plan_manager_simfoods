@@ -6,6 +6,7 @@ import pdfplumber
 from PyPDF2 import PdfReader, PdfWriter
 from enum import Enum
 
+
 # Define a class to handle the PDF plan sorting
 class PdfPlanSorter:
     # Nested enum class to track the status of a plan
@@ -13,13 +14,15 @@ class PdfPlanSorter:
         IN_PROGRESS = "in-progress"
         DONE = "done"
 
-    def __init__(self):
+    def __init__(
+        self, weights_file=None, batches_file=None, can1=[], hydro=[], line3=[]
+    ):
         # Initialize file paths and dictionaries to store data
-        self.weights_file_path = 'api/files/plan_weights.pdf'     #plan_weights.pdf
-        self.batches_file_path = 'api/files/plan_batches.pdf'     #plan_batches.pdf
-        self.can1 = []  # List to hold can1 plan numbers
-        self.hydro = []  # List to hold hydro plan numbers
-        self.line3 = []  # List to hold line3 plan numbers
+        self.weights_file = weights_file  # plan_weights.pdf
+        self.batches_file = batches_file  # plan_batches.pdf
+        self.can1 = can1  # List to hold can1 plan numbers
+        self.hydro = hydro  # List to hold hydro plan numbers
+        self.line3 = line3  # List to hold line3 plan numbers
         self.can1_dict = {}
         self.hydro_dict = {}
         self.line3_dict = {}
@@ -28,25 +31,26 @@ class PdfPlanSorter:
         self.pull_list = {}  # Dictionary to store aggregated rcode data
         self.status = self.Status.IN_PROGRESS  # Initial status set to IN_PROGRESS
 
-    def txt_to_array(self, file_path):
-        """
-        Read the contents of an order file and return a list of stripped lines.
+    # obsolete now
+    # def txt_to_array(self, file_path):
+    #     """
+    #     Read the contents of an order file and return a list of stripped lines.
 
-        Parameters:
-            file_path (str): The path to the order file.
+    #     Parameters:
+    #         file_path (str): The path to the order file.
 
-        Returns:
-            list: A list containing the stripped lines of the file.
-        """
-        orders = []
-        seen = set()  # Set to track seen lines and avoid duplicates
-        with open(file_path, "r") as order_file:
-            for line in order_file:
-                stripped_line = line.strip()
-                if stripped_line not in seen:
-                    seen.add(stripped_line)
-                    orders.append(stripped_line)
-        return orders
+    #     Returns:
+    #         list: A list containing the stripped lines of the file.
+    #     """
+    #     orders = []
+    #     seen = set()  # Set to track seen lines and avoid duplicates
+    #     with open(file_path, "r") as order_file:
+    #         for line in order_file:
+    #             stripped_line = line.strip()
+    #             if stripped_line not in seen:
+    #                 seen.add(stripped_line)
+    #                 orders.append(stripped_line)
+    #     return orders
 
     def ensure_plan_key_exists(self, plan_key):
         """
@@ -60,9 +64,10 @@ class PdfPlanSorter:
                 "batches": 0,
                 "progress": self.status.value,
                 "order": 0,
-                 "line":"",
+                "line": "",
             }
 
+    # Modifier functions
     def complete_task(self):
         """Set the status of the plan to DONE."""
         self.status = self.Status.DONE
@@ -87,15 +92,21 @@ class PdfPlanSorter:
         Extract plan numbers, pages, and weights from the weights PDF.
         Use regular expressions to identify and extract relevant information.
         """
-        weights_plan_number_re = re.compile(r'^2\d{6}')  # Regex to find plan numbers
-        weights_page_number_re = re.compile(r'(Page)\s\-\s([0-9]+)')  # Regex to find page numbers
-        component_pattern = re.compile(r'(?<=310\s(?:40\.00|75\.00)\s)(\w+)(?:/\d+)?')  # Regex to find components
-        quantity_pattern = re.compile(r'(\d+)(?=\.\d+\s*LB)')  # Regex to find quantities
+        weights_plan_number_re = re.compile(r"^2\d{6}")  # Regex to find plan numbers
+        weights_page_number_re = re.compile(
+            r"(Page)\s\-\s([0-9]+)"
+        )  # Regex to find page numbers
+        component_pattern = re.compile(
+            r"(?<=310\s(?:40\.00|75\.00)\s)(\w+)(?:/\d+)?"
+        )  # Regex to find components
+        quantity_pattern = re.compile(
+            r"(\d+)(?=\.\d+\s*LB)"
+        )  # Regex to find quantities
 
-        with pdfplumber.open(self.weights_file_path) as pdf:
+        with pdfplumber.open(self.weights_file) as pdf:
             for page in pdf.pages:
                 text = page.extract_text()  # Extract text from each page
-                for line in text.split('\n'):
+                for line in text.split("\n"):
                     page_match = weights_page_number_re.search(line)
                     plan_match = weights_plan_number_re.search(line)
 
@@ -115,26 +126,28 @@ class PdfPlanSorter:
                         if component_match and quantity_match:
                             component_value = component_match.group()
                             quantity_value = quantity_match.group()
-                            self.update_weights(found_plan, component_value, quantity_value)
+                            self.update_weights(
+                                found_plan, component_value, quantity_value
+                            )
 
     def extract_batches_plans_and_pages(self):
         """
         Extract plan numbers, pages, and batch totals from the batches PDF.
         Use regular expressions to identify and extract relevant information.
         """
-        batches_plan_number_re = re.compile(r'(Production Plan)\s*:\s*([0-9]+)')
-        batches_page_number_re = re.compile(r'(Page)\s*:\s*([0-9]+)')
-        flex_list_re = re.compile(r'(Production Plan)(.*)(Pouch)')
-        batch_number_re = re.compile(r'(?:Totals:\s*)([0-9]+\.?[0-9]*)')
+        batches_plan_number_re = re.compile(r"(Production Plan)\s*:\s*([0-9]+)")
+        batches_page_number_re = re.compile(r"(Page)\s*:\s*([0-9]+)")
+        flex_list_re = re.compile(r"(Production Plan)(.*)(Pouch)")
+        batch_number_re = re.compile(r"(?:Totals:\s*)([0-9]+\.?[0-9]*)")
 
-        with pdfplumber.open(self.batches_file_path) as pdf:
+        with pdfplumber.open(self.batches_file) as pdf:
             for page in pdf.pages:
                 text = page.extract_text()
                 if text:
                     text = text.strip()  # Clean the extracted text
                     found_plan = None
                     found_page = None
-                    for line in text.split('\n'):
+                    for line in text.split("\n"):
                         line = line.strip()  # Clean each line
                         # Check for flex plans and skip if found
                         flex_match = flex_list_re.search(line)
@@ -157,73 +170,147 @@ class PdfPlanSorter:
                             if found_plan:
                                 self.update_batches(found_plan, batch_total.group(1))
 
-    def add_pages_to_pdf(self):
-        
+    # def process_data(self):
+    #     """Add specific pages to a new PDF based on the ordered plans."""
+    #     weights_input_pdf = PdfReader(self.weights_file)
+    #     batches_input_pdf = PdfReader(self.batches_file)
+    #     pdf_writer = PdfWriter()
+
+    #     # Helper function to update the ordered dictionary
+    #     def update_ordered_dict(items_list, line):
+    #         for item in items_list:
+    #             if item not in self.dictionary:
+    #                 continue
+    #             # self.dictionary[item]["label"] = label
+    #             self.dictionary[item]["order"] = items_list.index(item) + 1
+    #             self.dictionary[item]["line"] = line
+    #             ordered_dict = {}
+    #             ordered_dict[item] = self.dictionary[item]
+    #         return ordered_dict
+
+    #     # Update the ordered dictionary in the specified order
+    #     self.can1_dict = update_ordered_dict(self.can1, "can1")
+    #     self.hydro_dict = update_ordered_dict(self.hydro, "hydro")
+    #     self.line3_dict = update_ordered_dict(self.line3, "line3")
+
+    #     # Helper function to process items
+    #     def find_and_add_pages(items_list, items_dict):
+    #         for item in items_list:
+    #             try:
+    #                 # Get unique pages while preserving order
+    #                 pages = list(dict.fromkeys(items_dict[item]["pages"]))
+    #                 findpage2 = int(pages[1]) - 1 if len(pages) > 1 else None
+    #                 findpage1 = int(pages[0]) - 1
+    #                 if findpage2 is not None:
+    #                     page2 = batches_input_pdf.pages[findpage2]
+    #                     pdf_writer.add_page(page2)
+    #                 page1 = weights_input_pdf.pages[findpage1]
+    #                 pdf_writer.add_page(page1)
+    #             except (IndexError, KeyError) as e:
+    #                 print(f"Error processing item {item}: {e}")
+    #                 continue
+
+    #     # Process each list and add pages to the PDF
+    #     for items_list in [self.can1, self.hydro, self.line3]:
+    #         pdf_writer.add_blank_page(
+    #             width=792, height=612
+    #         )  # Add a blank page as a separator
+    #         for dict in [self.can1_dict, self.hydro_dict, self.line3_dict]:
+    #             find_and_add_pages(items_list, dict)
+
+    #     # Write the ordered pages to a new PDF file
+    #     with Path("plans_in_order.pdf").open(mode="wb") as output_file:
+    #         pdf_writer.write(output_file)
+
+    # def get_pull_list(self, dictionary):
+    #     """
+    #     Sum the quantities for each rcode across all plans.
+    #     """
+    #     rcode_sums = {}
+
+    #     for plan_key, plan_value in dictionary.items():
+    #         for weight in plan_value["weights"]:
+    #             for rcode, value in weight.items():
+    #                 if (
+    #                     rcode not in rcode_sums
+    #                     and rcode.startswith("R")
+    #                     and not rcode.startswith("RN")
+    #                 ):
+    #                     rcode_sums[rcode] = 0
+    #                     rcode_sums[rcode] += int(value)
+    #     sorted_r_codes = dict(sorted(rcode_sums.items()))
+
+    #     # Store the summed rcode values in the pull_list attribute
+    #     self.pull_list = sorted_r_codes
+
+    def read_pdfs(self):
+        """Read the input PDF files."""
+        self.weights_input_pdf = PdfReader(self.weights_file)
+        self.batches_input_pdf = PdfReader(self.batches_file)
+
+    def update_ordered_dict(self, items_list, line):
+        """Update the ordered dictionary based on the item list and line type."""
+        ordered_dict = {}
+        for item in items_list:
+            if item not in self.dictionary:
+                continue
+            # Update dictionary entries
+            self.dictionary[item]["order"] = items_list.index(item) + 1
+            self.dictionary[item]["line"] = line
+            ordered_dict[item] = self.dictionary[item]
+        return ordered_dict
+
+    def process_dictionaries(self):
+        """Process and update all the ordered dictionaries."""
+        self.can1_dict = self.update_ordered_dict(self.can1, "can1")
+        self.hydro_dict = self.update_ordered_dict(self.hydro, "hydro")
+        self.line3_dict = self.update_ordered_dict(self.line3, "line3")
+
+    def find_and_add_pages(self, items_list, items_dict, pdf_writer):
+        """Find and add pages for the items in the given dictionary."""
+        for item in items_list:
+            try:
+                # Get unique pages while preserving order
+                pages = list(dict.fromkeys(items_dict[item]["pages"]))
+                findpage2 = int(pages[1]) - 1 if len(pages) > 1 else None
+                findpage1 = int(pages[0]) - 1
+                if findpage2 is not None:
+                    page2 = self.batches_input_pdf.pages[findpage2]
+                    pdf_writer.add_page(page2)
+                page1 = self.weights_input_pdf.pages[findpage1]
+                pdf_writer.add_page(page1)
+            except (IndexError, KeyError) as e:
+                print(f"Error processing item {item}: {e}")
+                continue
+
+    def process_data(self):
         """Add specific pages to a new PDF based on the ordered plans."""
-        weights_input_pdf = PdfReader(self.weights_file_path)
-        batches_input_pdf = PdfReader(self.batches_file_path)
+        # Read PDF files
+        self.read_pdfs()
+
+        # Process dictionaries
+        self.process_dictionaries()
+
         pdf_writer = PdfWriter()
 
-        # Helper function to update the ordered dictionary
-        def update_ordered_dict(items_list, line):
-            for item in items_list:
-                if item not in self.dictionary:
-                    continue
-                # self.dictionary[item]["label"] = label
-                self.dictionary[item]["order"] = items_list.index(item)+1
-                self.dictionary[item]["line"]= line
-                ordered_dict = {}
-                ordered_dict[item] = self.dictionary[item]
-            return ordered_dict
-
-        # Update the ordered dictionary in the specified order
-        self.can1_dict = update_ordered_dict(self.can1, "can1")
-        self.hydro_dict = update_ordered_dict(self.hydro, "hydro")
-        self.line3_dict = update_ordered_dict(self.line3, "line3")
-
-        # Helper function to process items
-        def find_and_add_pages(items_list, items_dict):
-            for item in items_list:
-                try:
-                    # Get unique pages while preserving order
-                    pages = list(dict.fromkeys(items_dict[item]["pages"]))
-                    findpage2 = int(pages[1]) - 1 if len(pages) > 1 else None
-                    findpage1 = int(pages[0]) - 1
-                    if findpage2 is not None:
-                        page2 = batches_input_pdf.pages[findpage2]
-                        pdf_writer.add_page(page2)
-                    page1 = weights_input_pdf.pages[findpage1]
-                    pdf_writer.add_page(page1)
-                except (IndexError, KeyError) as e:
-                    print(f"Error processing item {item}: {e}")
-                    continue
-
         # Process each list and add pages to the PDF
-        for items_list in [self.can1, self.hydro, self.line3]:
-            pdf_writer.add_blank_page(width=792, height=612)  # Add a blank page as a separator
-            for dict in [self.can1_dict, self.hydro_dict, self.line3_dict]:
-                find_and_add_pages(items_list, dict)
+        for items_list, items_dict in [
+            (self.can1, self.can1_dict),
+            (self.hydro, self.hydro_dict),
+            (self.line3, self.line3_dict),
+        ]:
+            # Add a blank page as a separator
+            pdf_writer.add_blank_page(width=792, height=612)
+            self.find_and_add_pages(items_list, items_dict, pdf_writer)
 
         # Write the ordered pages to a new PDF file
+        self.write_pdf(pdf_writer)
+
+    def write_pdf(self, pdf_writer):
+        """Write the collected pages to a new PDF file."""
         with Path("plans_in_order.pdf").open(mode="wb") as output_file:
             pdf_writer.write(output_file)
-
-    def get_pull_list(self, dictionary):
-        """
-        Sum the quantities for each rcode across all plans.
-        """
-        rcode_sums = {}
-
-        for plan_key, plan_value in dictionary.items():
-            for weight in plan_value['weights']:
-                for rcode, value in weight.items():
-                    if rcode not in rcode_sums and rcode.startswith('R') and not rcode.startswith('RN'):
-                        rcode_sums[rcode] = 0
-                        rcode_sums[rcode] += int(value)
-        sorted_r_codes = dict(sorted(rcode_sums.items()))
-
-        # Store the summed rcode values in the pull_list attribute
-        self.pull_list = sorted_r_codes
+        print("PDF written successfully to plans_in_order.pdf")
 
     def process_plan_sort(self):
         """
@@ -234,24 +321,25 @@ class PdfPlanSorter:
         self.extract_weights_plans_and_pages()
         self.extract_batches_plans_and_pages()
 
-        self.can1 = self.txt_to_array("api/files/order_can1.txt")
-        self.hydro = self.txt_to_array("api/files/order_hydro.txt")
-        self.line3 = self.txt_to_array("api/files/order_line3.txt")
+        # self.can1 = self.txt_to_array("api/files/order_can1.txt")
+        # self.hydro = self.txt_to_array("api/files/order_hydro.txt")
+        # self.line3 = self.txt_to_array("api/files/order_line3.txt")
 
         # Add pages to a new PDF based on the extracted data
-        self.add_pages_to_pdf()
+        self.process_data()
         # # Output the ordered dictionary as a JSON string
         json_data = json.dumps(self.ordered_dict, indent=8)
         print(json_data)
 
-# Usage:
-pdf_plan_sorter = PdfPlanSorter()
-pdf_plan_sorter.process_plan_sort()  # Process the plan sorting
-pdf_plan_sorter.get_pull_list(pdf_plan_sorter.ordered_dict)  # Sum all rcodes
-# Print a header for the table
-print(f'{"R_CODE":<15} {"WEIGHT (LBS)"}')
-print('-' * 25)
 
-# Iterate through the items and print them in table format
-for key, value in pdf_plan_sorter.pull_list.items():
-    print(f'{key:<15} {value}')
+# Usage:
+# pdf_plan_sorter = PdfPlanSorter()
+# pdf_plan_sorter.process_plan_sort()  # Process the plan sorting
+# pdf_plan_sorter.get_pull_list(pdf_plan_sorter.ordered_dict)  # Sum all rcodes
+# # Print a header for the table
+# print(f'{"R_CODE":<15} {"WEIGHT (LBS)"}')
+# print("-" * 25)
+
+# # Iterate through the items and print them in table format
+# for key, value in pdf_plan_sorter.pull_list.items():
+#     print(f"{key:<15} {value}")

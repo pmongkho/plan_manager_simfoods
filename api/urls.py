@@ -2,5 +2,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('upload/', views.upload_and_process_files, name='upload_and_process_files'),
+    path("upload/", views.upload_view, name="upload"),
+    path("dashboard/", views.dashboard_view, name="dashboard"),
 ]
