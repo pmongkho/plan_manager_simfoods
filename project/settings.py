@@ -80,17 +80,17 @@ WSGI_APPLICATION = "project.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "plan-manager",
+        "NAME": "postgres",  # Database name
         "USER": "pmongkho",
-        "PASSWORD": "Idontknow1",
+        "PASSWORD": "Idontknow1",  # Replace with your actual password
         "HOST": "plan-manager.postgres.database.azure.com",
         "PORT": "5432",
         "OPTIONS": {
-            "connect_timeout": 10,  # Increase this value as needed
-            "sslmode": "require",
+            "sslmode": "require",  # This is required for Azure PostgreSQL
         },
     }
 }
+LOGIN_URL = "/login/"  # URL to redirect unauthenticated users to
 
 # export PGHOST=plan-manager.postgres.database.azure.com
 # export PGUSER=pmongkho

@@ -4,9 +4,11 @@ from django.db import models
 class Plan(models.Model):
     plan_id = models.CharField(max_length=10, primary_key=True)  # Assuming the key is the unique plan ID
     batches = models.DecimalField(max_digits=10, decimal_places=2)
-    progress = models.CharField(max_length=20)  # In-progress, done, etc.
-    order = models.IntegerField()  # Order of the plan
-    line = models.CharField(max_length=20)  # E.g., "line1", "line3"
+    progress = models.CharField(max_length=20, default="in-progress")  # In-progress, done, etc.
+    order = models.IntegerField(default=-1)  # Order of the plan
+    line = models.CharField(
+        max_length=100, default="line"
+    )  # Set a default value
 
     def __str__(self):
         return f"Plan {self.plan_id} - {self.line}"

@@ -4,11 +4,27 @@ from .models import Plan, Page, Weight
 from .files.pdf_plan_manager import (
     PdfPlanSorter,
 )  # Assuming you have PdfPlanSorter as a utility class for processing
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import user_passes_test, login_required
+from django.contrib.auth import authenticate, login, logout
 
+# use loginrequired for the home view when using auth
 
 def is_admin(user):
     return user.is_staff or user.is_superuser  # Adjust based on your admin criteria
+
+
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect("home")  # Redirect to the home page or dashboard
+        else:
+            return render(request, "login.html", {"error": "Invalid credentials"})
+    else:
+        return render(request, "login.html")
 
 
 @user_passes_test(
@@ -92,7 +108,8 @@ def upload_view(request):
                 defaults={
                     "batches": plan_data["batches"],
                     "progress": plan_data["progress"],
-                    "label": plan_data["label"],
+                    "order": plan_data["order"],
+                    "line": plan_data["line"],
                 },
             )
 
@@ -112,8 +129,18 @@ def upload_view(request):
     else:
         form = PdfUploadForm()
 
-    return render(request, "input_pdf_plan_numbers.html", {"form": form})
+    return render(request, "upload.html", {"form": form})
 
 
 def dashboard_view(request):
-    pass
+    return render(request, "dashboard.html")
+
+
+def home_view(request):
+    form = PdfUploadForm()  # Initialize the form
+    return render(request, "home.html")  # Pass the form to the template
+
+
+def logout_view(request):
+    logout(request)
+    return redirect("login")  # Redirect to the login page after logging out
