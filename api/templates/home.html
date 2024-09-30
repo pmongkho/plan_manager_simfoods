@@ -5,77 +5,33 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Home Page</title>
-		<style>
-			/* Basic styles for the page */
-			body {
-				font-family: Arial, sans-serif;
-				margin: 0;
-				padding: 0;
-                height: 100;
-			}
-			.container {
-				max-width: 800px;
-				margin: 50px auto;
-				padding: 20px;
-				border: 1px solid #ccc;
-				border-radius: 5px;
-			}
-			.tabs {
-				display: flex;
-				cursor: pointer;
-			}
-			.tab {
-				flex: 1;
-				padding: 10px;
-				text-align: center;
-				border-bottom: 2px solid transparent;
-				transition: all 0.3s ease-in-out;
-			}
-			.tab.active {
-				border-bottom: 2px solid #007bff;
-				color: #007bff;
-			}
-			.content {
-				display: none;
-			}
-			.content.active {
-				display: block;
-			}
-		</style>
-		<script>
-			function showTab(tabId) {
-				const tabs = document.querySelectorAll('.tab')
-				const contents = document.querySelectorAll('.content')
 
-				tabs.forEach((tab) => tab.classList.remove('active'))
-				contents.forEach((content) => content.classList.remove('active'))
-
-				document.getElementById(tabId).classList.add('active')
-				document.getElementById(tabId + '-content').classList.add('active')
-			}
-
-			// On page load, set the default active tab
-			document.addEventListener('DOMContentLoaded', function () {
-				showTab('upload') // Default to show the 'upload' tab content
-			})
-		</script>
 	</head>
 	<body>
 		<div class="container">
-			<div class="tabs">
-				<div id="upload" class="tab active" onclick="showTab('upload')"
-					>Upload</div
-				>
-				<div id="dashboard" class="tab" onclick="showTab('dashboard')"
-					>Dashboard</div
-				>
-			</div>
-			<div class="content active" id="upload-content">
-				{% include 'upload.html' %}
-			</div>
-			<div class="content" id="dashboard-content">
-				{% include 'dashboard.html' %}
-			</div>
+			<!-- Navigation Bar -->
+			<nav>
+				<div>
+					<!-- Use Django's URL template tag to link to different views -->
+					<a
+						href="{% url 'upload' %}"
+						class=""   
+						>Upload</a
+					>
+                     {% comment %} #{% if request.path == url 'upload' %} active {% endif %} {% endcomment %}
+					<a
+						href="{% url 'dashboard' %}"
+						class=""
+						>Dashboard</a
+					>
+				</div>
+				<div>
+					<a href="{% url 'logout' %}">Logout</a>
+				</div>
+			</nav>
+
+			<!-- Content will be injected here based on the URL -->
+			<div class="content"> {% block content %}{% endblock %} </div>
 		</div>
 	</body>
 </html>

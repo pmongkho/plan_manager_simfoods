@@ -27,9 +27,9 @@ def login_view(request):
         return render(request, "login.html")
 
 
-@user_passes_test(
-    is_admin, login_url="dashboard"
-)  # Redirect non-admins to the dashboard
+# @user_passes_test(
+#     is_admin, login_url="dashboard"
+# )  # Redirect non-admins to the dashboard
 def upload_view(request):
     if request.method == "POST":
         form = PdfUploadForm(request.POST, request.FILES)
@@ -96,22 +96,22 @@ def upload_view(request):
             pdf_plan_sorter.process_plan_sort()  # Extract and process plans from PDFs
 
             # Save each plan, page, and weight to the database
-        # Iterate over each dictionary one by one
-    for plan_dict in [
-        pdf_plan_sorter.can1_dict,
-        pdf_plan_sorter.hydro_dict,
-        pdf_plan_sorter.line3_dict,
-    ]:
-        for plan_id, plan_data in plan_dict.items():
-            plan_obj, created = Plan.objects.get_or_create(
-                plan_id=plan_id,
-                defaults={
-                    "batches": plan_data["batches"],
-                    "progress": plan_data["progress"],
-                    "order": plan_data["order"],
-                    "line": plan_data["line"],
-                },
-            )
+            # Iterate over each dictionary one by one
+            for plan_dict in [
+                pdf_plan_sorter.can1_dict,
+                pdf_plan_sorter.hydro_dict,
+                pdf_plan_sorter.line3_dict,
+            ]:
+                for plan_id, plan_data in plan_dict.items():
+                    plan_obj, created = Plan.objects.get_or_create(
+                        plan_id=plan_id,
+                        defaults={
+                            "batches": plan_data["batches"],
+                            "progress": plan_data["progress"],
+                            "order": plan_data["order"],
+                            "line": plan_data["line"],
+                        },
+                    )
 
             # Save pages
             for page_number in plan_data["pages"]:
@@ -133,7 +133,11 @@ def upload_view(request):
 
 
 def dashboard_view(request):
-    return render(request, "dashboard.html")
+    # Retrieve all plans along with their related weights and pages
+    plans = Plan.objects.prefetch_related("weights", "pages").all()
+
+    # Render the data to the template
+    return render(request, "dashboard.html", {"plans": plans})
 
 
 def home_view(request):
