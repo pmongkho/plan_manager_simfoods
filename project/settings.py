@@ -16,6 +16,15 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Directory for static files to be collected in production
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+# Additional static file directories (your Angular build files go here)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "client/static/client/browser"),
+]
+MEDIA_ROOT = os.path.join(BASE_DIR, "/media/")
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -58,7 +67,7 @@ ROOT_URLCONF = "project.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "api", "templates")],
+        "DIRS": [os.path.join(BASE_DIR, "client/static/client/browser")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -87,6 +96,7 @@ DATABASES = {
         "PORT": "5432",
         "OPTIONS": {
             "sslmode": "require",  # This is required for Azure PostgreSQL
+            "connect_timeout": 10,  # Set the timeout to 10 seconds
         },
     }
 }
@@ -132,7 +142,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

@@ -17,12 +17,29 @@ class PdfPlanSorter:
     def __init__(
         self, weights_file=None, batches_file=None, can1=[], hydro=[], line3=[]
     ):
+        # upload data
+        self.weights_file = weights_file
+        self.batches_file = batches_file
+        self.can1 = can1
+        self.hydro = hydro
+        self.line3 = line3
 
+        # dictionaries
+        self.dictionary = {}  # Main dictionary to store plan data
         self.can1_dict = {}
         self.hydro_dict = {}
         self.line3_dict = {}
-        self.dictionary = {}  # Main dictionary to store plan data
+
+        # pull list
         self.pull_list = {}  # Dictionary to store aggregated rcode data
+
+        # sortedpdf
+        self.plans_in_order_pdf = None
+
+        # error_plans
+        self.error_plans = {}
+
+        # enumberable for progress
         self.status = self.Status.IN_PROGRESS  # Initial status set to IN_PROGRESS
 
     def ensure_plan_key_exists(self, plan_key):
@@ -32,7 +49,7 @@ class PdfPlanSorter:
         """
         if plan_key not in self.dictionary:
             self.dictionary[plan_key] = {
-                "pages": [],
+                "pages": {},
                 "weights": [],
                 "batches": 0,
                 "progress": self.status.value,
@@ -96,7 +113,7 @@ class PdfPlanSorter:
                     elif plan_match:
                         found_plan = plan_match.group()
                         if found_page:
-                            self.update_back_page(found_plan, [found_page])
+                            self.update_back_page(found_plan, found_page)
                             found_page = None
 
                         # Extract and update weights if found
@@ -141,7 +158,7 @@ class PdfPlanSorter:
                             found_plan = plan_match.group(2)
                             # Update pages if found_page is not None
                             if found_page:
-                                self.update_front_page(found_plan, [found_page])
+                                self.update_front_page(found_plan, found_page)
                         if batch_total:
                             # Update batches if found_plan is not None
                             if found_plan:
@@ -164,26 +181,28 @@ class PdfPlanSorter:
             ordered_dict[item] = self.dictionary[item]
         return ordered_dict
 
-    def process_dictionaries(self):
+    def order_dicts(self):
         """Process and update all the ordered dictionaries."""
         self.can1_dict = self.update_ordered_dict(self.can1, "can1")
         self.hydro_dict = self.update_ordered_dict(self.hydro, "hydro")
         self.line3_dict = self.update_ordered_dict(self.line3, "line3")
 
-    def find_and_add_pages(self, items_list, items_dict, pdf_writer):
+    def put_pages_together(self, items_list, items_dict, pdf_writer):
         """Find and add pages for the items in the given dictionary."""
         for item in items_list:
             try:
                 # Get unique pages while preserving order
-                pages = list(dict.fromkeys(items_dict[item]["pages"]))
-                findpage2 = int(pages[1]) - 1 if len(pages) > 1 else None
-                findpage1 = int(pages[0]) - 1
-                if findpage2 is not None:
-                    page2 = self.batches_input_pdf.pages[findpage2]
-                    pdf_writer.add_page(page2)
-                page1 = self.weights_input_pdf.pages[findpage1]
-                pdf_writer.add_page(page1)
+                # pages = list(dict.fromkeys(items_dict[item]["pages"]))
+                front_page = int(items_dict[item]["pages"]["front"])
+                back_page = int(items_dict[item]["pages"]["back"])
+                if back_page is not None:
+                    back = self.weights_input_pdf.pages[back_page+1]
+                    pdf_writer.add_page(back)
+                    front = self.batches_input_pdf.pages[front_page+1]
+                    pdf_writer.add_page(front)
+                    
             except (IndexError, KeyError) as e:
+                self.error_plans[item] = items_dict.pop(item, None)
                 print(f"Error processing item {item}: {e}")
                 continue
 
@@ -193,7 +212,7 @@ class PdfPlanSorter:
         self.read_pdfs()
 
         # Process dictionaries
-        self.process_dictionaries()
+        self.order_dicts()
 
         pdf_writer = PdfWriter()
 
@@ -205,16 +224,20 @@ class PdfPlanSorter:
         ]:
             # Add a blank page as a separator
             pdf_writer.add_blank_page(width=792, height=612)
-            self.find_and_add_pages(items_list, items_dict, pdf_writer)
+            self.put_pages_together(items_list, items_dict, pdf_writer)
 
         # Write the ordered pages to a new PDF file
         self.write_pdf(pdf_writer)
 
     def write_pdf(self, pdf_writer):
-        """Write the collected pages to a new PDF file."""
-        with Path("plans_in_order.pdf").open(mode="wb") as output_file:
-            pdf_writer.write(output_file)
-        print("PDF written successfully to plans_in_order.pdf")
+            """Write the collected pages to a new PDF file."""
+            pdf_path = Path("/tmp/plans_in_order.pdf")  # Save the PDF to a temporary location
+            with pdf_path.open(mode="wb") as output_file:
+                pdf_writer.write(output_file)
+            print(f"PDF written successfully to {pdf_path}")
+            self.plans_in_order_pdf = pdf_path
+# Example usage:
+
 
     def process_plan_sort(self):
         """
@@ -228,8 +251,8 @@ class PdfPlanSorter:
         # Add pages to a new PDF based on the extracted data
         self.process_data()
         # # Output the ordered dictionary as a JSON string
-        json_data = json.dumps(self.ordered_dict, indent=8)
-        print(json_data)
+        # json_data = json.dumps(self.ordered_dict, indent=8)
+        # print(json_data)
 
 
 # Usage:
