@@ -15,13 +15,16 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+STATIC_URL = "/static/"
 
 # Directory for static files to be collected in production
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # Additional static file directories (your Angular build files go here)
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "client/static/client/browser"),
+    os.path.join(
+        BASE_DIR, "client/dist/client/browser"
+    ),  # Replace with your Angular build folder
 ]
 MEDIA_ROOT = os.path.join(BASE_DIR, "/media/")
 
@@ -48,11 +51,13 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "api",
+    "corsheaders",
     "rest_framework",
     "djoser",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -64,10 +69,14 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "project.urls"
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200",  # Or the Angular SSR server if it's different
+]
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "client/static/client/browser")],
+        "DIRS": [os.path.join(BASE_DIR, "client/dist/client/browser")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -96,8 +105,9 @@ DATABASES = {
         "PORT": "5432",
         "OPTIONS": {
             "sslmode": "require",  # This is required for Azure PostgreSQL
-            "connect_timeout": 10,  # Set the timeout to 10 seconds
+            "connect_timeout": 60,  # Set the timeout to 10 seconds
         },
+        "CONN_MAX_AGE": 600,  # Keep database connections alive for 10 minutes
     }
 }
 LOGIN_URL = "/login/"  # URL to redirect unauthenticated users to
@@ -142,9 +152,24 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = "/static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# settings.py
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # Redis server location and database number
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": "myapp",  # Optional: Prefix for cache keys to avoid key collisions
+    }
+}
+
+# Optional: Set a default timeout for cached data (in seconds)
+CACHE_TTL = 60 * 15  # 15 minutes

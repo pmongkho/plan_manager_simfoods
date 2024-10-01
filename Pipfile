@@ -9,6 +9,8 @@ djoser = "*"
 psycopg2-binary = "*"
 pdfplumber = "*"
 pypdf2 = "*"
+django-cors-headers = "*"
+django-redis = "*"
 
 [dev-packages]
 

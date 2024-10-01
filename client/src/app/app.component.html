@@ -1,0 +1,42 @@
+<div>
+  <h2>Summarize Plan Weights by Line</h2>
+
+  <form (ngSubmit)="getCan1Summary()">
+    <h3>Can1</h3>
+    <label for="can1StartPlanId">Start Plan ID:</label>
+    <input id="can1StartPlanId" [(ngModel)]="can1StartPlanId" name="can1StartPlanId" required>
+    <label for="can1EndPlanId">End Plan ID:</label>
+    <input id="can1EndPlanId" [(ngModel)]="can1EndPlanId" name="can1EndPlanId" required>
+    <button type="submit">Get Can1 Summary</button>
+  </form>
+
+  <ul *ngIf="can1Summary.length > 0">
+    <li *ngFor="let item of can1Summary">{{ item.component }}: {{ item.total_quantity }}</li>
+  </ul>
+
+  <form (ngSubmit)="getHydroSummary()">
+    <h3>Hydro</h3>
+    <label for="hydroStartPlanId">Start Plan ID:</label>
+    <input id="hydroStartPlanId" [(ngModel)]="hydroStartPlanId" name="hydroStartPlanId" required>
+    <label for="hydroEndPlanId">End Plan ID:</label>
+    <input id="hydroEndPlanId" [(ngModel)]="hydroEndPlanId" name="hydroEndPlanId" required>
+    <button type="submit">Get Hydro Summary</button>
+  </form>
+
+  <ul *ngIf="hydroSummary.length > 0">
+    <li *ngFor="let item of hydroSummary">{{ item.component }}: {{ item.total_quantity }}</li>
+  </ul>
+
+  <form (ngSubmit)="getLine3Summary()">
+    <h3>Line3</h3>
+    <label for="line3StartPlanId">Start Plan ID:</label>
+    <input id="line3StartPlanId" [(ngModel)]="line3StartPlanId" name="line3StartPlanId" required>
+    <label for="line3EndPlanId">End Plan ID:</label>
+    <input id="line3EndPlanId" [(ngModel)]="line3EndPlanId" name="line3EndPlanId" required>
+    <button type="submit">Get Line3 Summary</button>
+  </form>
+
+  <ul *ngIf="line3Summary.length > 0">
+    <li *ngFor="let item of line3Summary">{{ item.component }}: {{ item.total_quantity }}</li>
+  </ul>
+</div>

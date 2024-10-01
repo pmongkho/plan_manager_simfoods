@@ -63,4 +63,70 @@ class FailedPlanListView(ListAPIView):
 
 
 def index(request):
-    return render(request, os.path.join("client/browser", "index.html"))
+    return render(request, 'index.html')
+
+# Common function to handle the aggregation
+def get_plan_pulllist_by_line(start_plan_id, end_plan_id, line_type):
+    plans = Plan.objects.filter(
+        plan_id__gte=start_plan_id, plan_id__lte=end_plan_id, line=line_type
+    )
+    pulllist = (
+        Weight.objects.filter(plan__in=plans)
+        .values("component")
+        .annotate(total_quantity=Sum("quantity"))
+    )
+    return pulllist
+
+
+# View for "can1" line
+@api_view(["GET"])
+def pulllist_can1(request):
+    start_plan_id = request.GET.get("start_plan_id")
+    end_plan_id = request.GET.get("end_plan_id")
+
+    if not start_plan_id or not end_plan_id:
+        return JsonResponse(
+            {"error": "Please provide both start and end plan IDs"}, status=400
+        )
+
+    try:
+        pulllist = get_plan_pulllist_by_line(start_plan_id, end_plan_id, "can1")
+        return JsonResponse(list(pulllist), safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+# View for "hydro" line
+@api_view(["GET"])
+def pulllist_hydro(request):
+    start_plan_id = request.GET.get("start_plan_id")
+    end_plan_id = request.GET.get("end_plan_id")
+
+    if not start_plan_id or not end_plan_id:
+        return JsonResponse(
+            {"error": "Please provide both start and end plan IDs"}, status=400
+        )
+
+    try:
+        pulllist = get_plan_pulllist_by_line(start_plan_id, end_plan_id, "hydro")
+        return JsonResponse(list(pulllist), safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+# View for "line3"
+@api_view(["GET"])
+def pulllist_line3(request):
+    start_plan_id = request.GET.get("start_plan_id")
+    end_plan_id = request.GET.get("end_plan_id")
+
+    if not start_plan_id or not end_plan_id:
+        return JsonResponse(
+            {"error": "Please provide both start and end plan IDs"}, status=400
+        )
+
+    try:
+        pulllist = get_plan_pulllist_by_line(start_plan_id, end_plan_id, "line3")
+        return JsonResponse(list(pulllist), safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
