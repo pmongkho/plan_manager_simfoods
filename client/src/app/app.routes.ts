@@ -11,5 +11,5 @@ export const routes: Routes = [
 	{ path: 'hydro', component: HydroComponent },
 	{ path: 'line3', component: Line3Component },
 	{ path: 'totals', component: TotalsComponent },
-	{ path: '', redirectTo: '/can1', pathMatch: 'full' }, // Redirect to Can1 by default
+	{ path: '', redirectTo: '/totals', pathMatch: 'full' }, // Default route
 ]

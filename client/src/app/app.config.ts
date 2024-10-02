@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common' // Needed for ngClass
 import { FormsModule } from '@angular/forms' // Needed for ngModel if you're using two-way binding
 import {routes} from './app.routes'
 
+
 export const appConfig: ApplicationConfig = {
 	providers: [
 		provideZoneChangeDetection({ eventCoalescing: true }),

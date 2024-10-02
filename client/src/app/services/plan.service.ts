@@ -1,79 +1,122 @@
 import { Injectable } from '@angular/core'
 import { BehaviorSubject } from 'rxjs'
 
+// Define a type for the allowed lines
+type LineType = 'can1' | 'hydro' | 'line3'
+
 @Injectable({
 	providedIn: 'root',
 })
 export class PlanService {
-	private startPlanId: string | null = null
-	private endPlanId: string | null = null
-	private plans: any[] = [] // This will hold all plans for all lines (can1, hydro, line3)
+	private startPlanIds: { [key in LineType]: string | null } = {
+		can1: null,
+		hydro: null,
+		line3: null,
+	}
+
+	private endPlanIds: { [key in LineType]: string | null } = {
+		can1: null,
+		hydro: null,
+		line3: null,
+	}
+
+	private plans: { [key in LineType]: any[] } = {
+		can1: [],
+		hydro: [],
+		line3: [],
+	}
+
+	// Store weight summary and total batches for each line
+	private weightSummaries: { [key in LineType]: any[] } = {
+		can1: [],
+		hydro: [],
+		line3: [],
+	}
+
+	private totalBatches: { [key in LineType]: number } = {
+		can1: 0,
+		hydro: 0,
+		line3: 0,
+	}
 
 	public startPlanId$ = new BehaviorSubject<string | null>(null)
 	public endPlanId$ = new BehaviorSubject<string | null>(null)
 
-	// Set the list of plans
-	setPlans(plans: any[]): void {
-		this.plans = plans
+	// Set the list of plans for a specific line
+	setPlans(line: LineType, plans: any[]): void {
+		this.plans[line] = plans
 	}
 
-	// Select a plan and update the start or end plan ID
-	selectPlan(planId: string): void {
-		if (!this.startPlanId) {
-			this.startPlanId = planId
-			this.startPlanId$.next(this.startPlanId)
-		} else if (!this.endPlanId) {
-			this.endPlanId = planId
-			this.endPlanId$.next(this.endPlanId)
+	// Get the list of plans for a specific line
+	getPlans(line: LineType): any[] {
+		return this.plans[line]
+	}
+
+	// Get the start plan ID for a specific line
+	getStartPlanId(line: LineType): string | null {
+		return this.startPlanIds[line]
+	}
+
+	// Get the end plan ID for a specific line
+	getEndPlanId(line: LineType): string | null {
+		return this.endPlanIds[line]
+	}
+
+	// Select a plan and update the start or end plan ID for a specific line
+	selectPlan(line: LineType, planId: string): void {
+		if (!this.startPlanIds[line]) {
+			this.startPlanIds[line] = planId
+			this.startPlanId$.next(this.startPlanIds[line])
+		} else if (!this.endPlanIds[line]) {
+			this.endPlanIds[line] = planId
+			this.endPlanId$.next(this.endPlanIds[line])
+			// Recalculate totals when both start and end plans are selected
+			this.totalBatches[line] = this.calculateTotalBatches(line)
+			this.weightSummaries[line] = this.calculateWeightSummary(line)
 		} else {
-			this.startPlanId = planId
-			this.endPlanId = null
-			this.startPlanId$.next(this.startPlanId)
-			this.endPlanId$.next(this.endPlanId)
+			this.startPlanIds[line] = planId
+			this.endPlanIds[line] = null
+			this.startPlanId$.next(this.startPlanIds[line])
+			this.endPlanId$.next(this.endPlanIds[line])
 		}
 	}
+	// Get the total batches for the selected plans in a specific line
+	getTotalBatches(line: LineType): number {
+		return this.totalBatches[line]
+	}
 
-	// Calculate the total batches for the selected plans
-	calculateTotalBatches(): number {
-		let totalBatches = 0 // Reset the total batches
-
-		// Ensure start and end plan orders are not null
-		const startPlanOrder = this.getPlanOrderById(this.startPlanId) ?? 0
+	// Get the weight summary for the selected plans in a specific line
+	getWeightSummary(line: LineType): any[] {
+		return this.weightSummaries[line]
+	}
+	calculateTotalBatches(line: LineType): number {
+		const startPlanOrder =
+			this.getPlanOrderById(this.startPlanIds[line], line) ?? 0
 		const endPlanOrder =
-			this.getPlanOrderById(this.endPlanId) ?? Number.MAX_SAFE_INTEGER
+			this.getPlanOrderById(this.endPlanIds[line], line) ??
+			Number.MAX_SAFE_INTEGER
 
-		// Calculate total batches for plans in the range
-		totalBatches = this.plans
+		return this.plans[line]
 			.filter(
 				(plan) => plan.order >= startPlanOrder && plan.order <= endPlanOrder
 			)
 			.reduce((total, plan) => total + plan.batches, 0)
-
-		return totalBatches
 	}
 
-	// Calculate the summary of weights for the selected range
-	calculateWeightSummary(): any[] {
-		// Ensure start and end plan IDs are available
-		if (!this.startPlanId || !this.endPlanId) return []
+	calculateWeightSummary(line: LineType): any[] {
+		const startPlanOrder = this.getPlanOrderById(this.startPlanIds[line], line)
+		const endPlanOrder = this.getPlanOrderById(this.endPlanIds[line], line)
 
-		// Get the order values of the start and end plans
-		const startPlanOrder = this.getPlanOrderById(this.startPlanId)
-		const endPlanOrder = this.getPlanOrderById(this.endPlanId)
-
-		// Check if either startPlanOrder or endPlanOrder is null
 		if (startPlanOrder === null || endPlanOrder === null) {
 			return []
 		}
 
-		// Filter the plans within the selected range (inclusive of start and end orders)
-		const selectedPlans = this.plans.filter(
+		const selectedPlans = this.plans[line].filter(
 			(plan) => plan.order >= startPlanOrder && plan.order <= endPlanOrder
 		)
 
-		const weightSummary: any = {}
+		const weightSummary: { [key: string]: number } = {}
 
-		// Aggregate the weights from all selected plans
 		selectedPlans.forEach((plan) => {
 			plan.weights.forEach(
 				(weight: { component: string; quantity: number }) => {
@@ -85,30 +128,32 @@ export class PlanService {
 			)
 		})
 
-		// Convert the summary object to an array format
 		return Object.keys(weightSummary).map((component) => ({
 			component,
 			total_quantity: weightSummary[component],
 		}))
 	}
 
-	// Check if a plan is within the selected range
-	isPlanInRange(planOrder: number): boolean {
-		const startPlanOrder = this.getPlanOrderById(this.startPlanId)
-		const endPlanOrder = this.getPlanOrderById(this.endPlanId)
+	// Check if a plan is within the selected range for a specific line
+	isPlanInRange(planOrder: number, line: LineType): boolean {
+		const startPlanOrder = this.getPlanOrderById(this.startPlanIds[line], line)
+		const endPlanOrder = this.getPlanOrderById(this.endPlanIds[line], line)
 
-		// Ensure startPlanOrder and endPlanOrder are not null before comparing
-		if (startPlanOrder !== null && endPlanOrder !== null) {
-			return planOrder >= startPlanOrder && planOrder <= endPlanOrder
-		}
-
-		// If either startPlanOrder or endPlanOrder is null, return false
-		return false
+		return (
+			startPlanOrder !== null &&
+			endPlanOrder !== null &&
+			planOrder >= startPlanOrder &&
+			planOrder <= endPlanOrder
+		)
 	}
 
-	// Helper to get the plan order by plan ID
-	private getPlanOrderById(planId: string | null): number | null {
-		const foundPlan = this.plans.find((plan) => plan.plan_id === planId)
+	// Helper to get the plan order by plan ID for a specific line
+	private getPlanOrderById(
+		planId: string | null,
+		line: LineType
+	): number | null {
+		const plans = this.plans[line]
+		const foundPlan = plans.find((plan) => plan.plan_id === planId)
 		return foundPlan ? foundPlan.order : null
 	}
 }

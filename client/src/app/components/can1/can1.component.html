@@ -1,1 +1,30 @@
-<p>can1 works!</p>
+<div class="can1-container ">
+	<h2 class="text-xl font-bold">Can1 Line Plans</h2>
+
+	<!-- Display Can1 plans -->
+<div *ngFor="let plan of can1Plans" (click)="selectPlan(plan.plan_id)">
+  <div
+    class="plan-item cursor-pointer border border-gray-500 bg-green-500 rounded p-2 m-2"
+    [ngClass]="{
+      'bg-green-500 text-white':
+        plan.plan_id === planService.getStartPlanId('can1') ||
+        plan.plan_id === planService.getEndPlanId('can1'),
+      'bg-green-300': planService.isPlanInRange(plan.order, 'can1')
+    }"
+  >
+    {{ plan.plan_id }} - Batches: {{ plan.batches }}
+  </div>
+</div>
+
+	<p>Total Batches for Selected Can1 Plans: {{ totalBatches }}</p>
+
+	<!-- Display the weight summary -->
+	<div *ngIf="weightSummary.length > 0">
+		<h4 class="text-md font-semibold">Can1 Weight Summary</h4>
+		<ul class="text-left">
+			<li *ngFor="let item of weightSummary">
+				{{ item.component }}: {{ item.total_quantity }}
+			</li>
+		</ul>
+	</div>
+</div>
