@@ -10,12 +10,12 @@
 				(click)="selectPlan('can1', plan.plan_id)"
 			>
 				<div
-					class="plan-item cursor-pointer border border-gray-500 bg-green-700 rounded p-2 m-2"
+					class="plan-item cursor-pointer border border-gray-500 bg-green-500 rounded p-2 m-2"
 					[ngClass]="{
-						'bg-green-700 text-white':
+						'bg-green-500 text-white':
 							plan.plan_id === startCan1PlanId ||
 							plan.plan_id === endCan1PlanId,
-						'bg-green-700': isPlanInRange(plan.order, 'can1')
+						'bg-green-500': isPlanInRange(plan.order, 'can1')
 					}"
 				>
 					{{ plan.plan_id }} - Batches: {{ plan.batches }}
@@ -47,12 +47,12 @@
 				(click)="selectPlan('hydro', plan.plan_id)"
 			>
 				<div
-					class="plan-item cursor-pointer border border-gray-500 bg-green-700 rounded p-2 m-2"
+					class="plan-item cursor-pointer border border-gray-500 bg-green-500 rounded p-2 m-2"
 					[ngClass]="{
-						'bg-green-700 text-white':
+						'bg-green-500 text-white':
 							plan.plan_id === startHydroPlanId ||
 							plan.plan_id === endHydroPlanId,
-						'bg-green-700': isPlanInRange(plan.order, 'hydro')
+						'bg-green-500': isPlanInRange(plan.order, 'hydro')
 					}"
 				>
 					{{ plan.plan_id }} - Batches: {{ plan.batches }}
@@ -82,12 +82,12 @@
 				(click)="selectPlan('line3', plan.plan_id)"
 			>
 				<div
-					class="plan-item cursor-pointer border border-gray-500 bg-green-700 rounded p-2 m-2"
+					class="plan-item cursor-pointer border border-gray-500 bg-green-500 rounded p-2 m-2"
 					[ngClass]="{
-						'bg-green-700 text-white':
+						'bg-green-500 text-white':
 							plan.plan_id === startLine3PlanId ||
 							plan.plan_id === endLine3PlanId,
-						'bg-green-700': isPlanInRange(plan.order, 'line3')
+						'bg-green-500': isPlanInRange(plan.order, 'line3')
 					}"
 				>
 					{{ plan.plan_id }} - Batches: {{ plan.batches }}

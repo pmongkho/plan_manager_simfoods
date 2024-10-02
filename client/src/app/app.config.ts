@@ -1,15 +1,16 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { routes } from './app.routes';
-import {provideHttpClient} from '@angular/common/http';
-import { provideForms } from '@angular/forms';  // Import provideForms
-
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core'
+import { RouterModule, provideRouter } from '@angular/router'
+import { provideHttpClient } from '@angular/common/http'
+import { importProvidersFrom } from '@angular/core' // This allows importing CommonModule, FormsModule
+import { CommonModule } from '@angular/common' // Needed for ngClass
+import { FormsModule } from '@angular/forms' // Needed for ngModel if you're using two-way binding
+import {routes} from './app.routes'
 
 export const appConfig: ApplicationConfig = {
 	providers: [
 		provideZoneChangeDetection({ eventCoalescing: true }),
 		provideRouter(routes),
-		provideHttpClient(), // This enables HTTP functionality
-		provideForms(), // This enables Forms functionality, including ngModel
+		provideHttpClient(),
+		importProvidersFrom(CommonModule, FormsModule,RouterModule), // Add CommonModule for ngClass and FormsModule for ngModel
 	],
 }
