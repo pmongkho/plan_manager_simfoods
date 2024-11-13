@@ -26,6 +26,10 @@ class Plan(models.Model):
 
         super(Plan, self).delete(*args, **kwargs)  # Call the default delete method
 
+    class Meta:
+        ordering = ['order']  # Default ordering by `order` field
+
+
     def __str__(self):
         return f"Plan {self.plan_id}: {self.line}"
 

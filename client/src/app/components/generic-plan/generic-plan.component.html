@@ -1,0 +1,161 @@
+<div class="plan-container min-h-[85vh] max-h-[85vh] overflow-scroll" cdkDropList (cdkDropListDropped)="drop($event)">
+	<div class="sticky top-0 bg-gray-800 z-10 pb-2">
+		<h2 class="text-xl text-center py-4 font-bold">{{ planType | titlecase }} Plans</h2>
+		<div class="flex justify-between space-x-4">
+			<div>
+				<p>Batches Selected: {{ totalBatches }}</p>
+			</div>
+			<div>
+				<button
+					(click)="resetSelection()"
+					class="px-4 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-700 transition-colors duration-300"
+				>
+					Reset
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Skeleton Loader -->
+	<div *ngIf="loading" class="space-y-4 p-4 animate-pulse">
+		<div class="h-6 bg-gray-700 rounded w-[15vw]"></div>
+		<div class="h-6 bg-gray-700 rounded w-[15vw]"></div>
+		<div class="h-6 bg-gray-700 rounded w-[15vw]"></div>
+		<div class="h-6 bg-gray-700 rounded w-[15vw]"></div>
+		<div class="h-6 bg-gray-700 rounded w-[15vw]"></div>
+		<div class="h-6 bg-gray-700 rounded w-[15vw]"></div>
+	</div>
+
+		<!-- Display 'No Data' message if plans is empty and not loading -->
+	<div *ngIf="!loading && plans.length === 0" class="text-center text-gray-500 mt-4">
+		<p>No plans available.</p>
+	</div>
+
+	<!-- Display plans with drag-and-drop -->
+	<div *ngIf="!loading" cdkDropList (cdkDropListDropped)="drop($event)">
+		<div *ngFor="let plan of plans" cdkDrag (click)="selectPlan(plan.plan_id)">
+			<div
+				class="plan-item cursor-pointer border border-gray-900 rounded p-2 transform transition-transform duration-300"
+				[ngClass]="{
+					'bg-green-600 text-white':
+						plan.plan_id === planService.getStartPlanId(planType) ||
+						plan.plan_id === planService.getEndPlanId(planType),
+					'bg-green-600': planService.isPlanInRange(plan.order, planType)
+				}"
+			>
+				<div cdkDragHandle class="flex justify-between text-white items-center px-2 relative">
+					<div>{{ plan.plan_id }} - Batches: {{ plan.batches }}</div>
+					<button
+						(click)="viewPlan(plan); $event.stopPropagation()"
+						class="hover:bg-gray-600 rounded-full p-1 ml-2"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+						</svg>
+					</button>
+				</div>
+			</div>
+
+
+      
+		</div>
+	</div>
+
+  <!-- Display the weight summary -->
+<div *ngIf="weightSummary.length > 0 && !loading">
+    <div class="mt-4 overflow-x-auto w-full p-0 m-0">
+		<!-- Table -->
+   <app-table
+          [tableData]="weightSummary"
+          [showPrint]="false"
+          [showCopy]="true"
+        ></app-table>
+    </div>
+</div>
+
+
+
+
+	<!-- View/Edit Modal (unchanged) -->
+	<div
+		*ngIf="showModal"
+		class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50"
+	>
+		<div *ngIf="selectedPlan"
+			class="bg-gray-800 p-6 rounded-lg shadow-lg w-[90%] max-w-lg text-white"
+		>
+			<h3 class="text-xl font-bold mb-4">View/Edit Plan - {{ selectedPlan.plan_id }}</h3>
+			<form class="max-h-[75vh] overflow-y-auto relative px-4">
+				<!-- Plan ID Field (Read-Only) -->
+				<label class="block mb-2">
+					<span class="text-gray-400">Plan ID</span>
+					<input
+						[(ngModel)]="selectedPlan.plan_id"
+						name="plan_id"
+						class="block w-full p-2 mt-1 bg-gray-700 rounded text-gray-200"
+						readonly
+					/>
+				</label>
+
+				<!-- Batches Field -->
+				<label class="block mb-2">
+					<span class="text-gray-400">Batches</span>
+					<input
+						[(ngModel)]="selectedPlan.batches"
+						name="batches"
+						class="block w-full p-2 mt-1 bg-gray-700 rounded text-gray-200"
+						type="text"
+					/>
+				</label>
+
+				<!-- Weight Data Fields -->
+				<div *ngIf="selectedPlan?.weights" class="mt-4">
+					<h4 class="text-lg font-semibold text-gray-300 mb-2">Weights</h4>
+					<div
+						*ngFor="let weight of selectedPlan?.weights; let i = index"
+						class="mb-2"
+					>
+						<label class="block">
+							<span class="text-gray-400">{{ weight.component }}</span>
+							<input
+								[(ngModel)]="weight.quantity"
+								[name]="'weight_' + i"
+								class="block w-full p-2 mt-1 bg-gray-700 rounded text-gray-200"
+								type="text"
+							/>
+						</label>
+					</div>
+				</div>
+
+				<!-- Sticky Bottom Buttons -->
+				<div
+					class="flex justify-end space-x-4 sticky bottom-0 bg-gray-800 p-4 -mx-6 rounded-b-lg"
+				>
+					<button
+						type="button"
+						(click)="deletePlan(selectedPlan)"
+						class="px-4 py-2 bg-red-500 rounded hover:bg-red-600"
+					>
+						Delete
+					</button>
+					<button
+						type="submit"
+						(click)="savePlan()"
+						class="px-4 py-2 bg-blue-500 rounded hover:bg-blue-600"
+					>
+						Save
+					</button>
+					<button
+						type="button"
+						(click)="closeModal()"
+						class="px-4 py-2 bg-gray-500 rounded hover:bg-gray-600"
+					>
+						Cancel
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+  
+</div>

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core'
 import { BehaviorSubject } from 'rxjs'
+import { Plan, Weight } from '../models/plan.model'
 
-// Define a type for the allowed lines
-type LineType = 'can1' | 'hydro' | 'line3'
+export type LineType = 'can1' | 'hydro' | 'line3'
 
 @Injectable({
 	providedIn: 'root',
@@ -20,13 +20,12 @@ export class PlanService {
 		line3: null,
 	}
 
-	private plans: { [key in LineType]: any[] } = {
+	private plans: { [key in LineType]: Plan[] } = {
 		can1: [],
 		hydro: [],
 		line3: [],
 	}
 
-	// Store weight summary and total batches for each line
 	private weightSummaries: { [key in LineType]: any[] } = {
 		can1: [],
 		hydro: [],
@@ -42,27 +41,23 @@ export class PlanService {
 	public startPlanId$ = new BehaviorSubject<string | null>(null)
 	public endPlanId$ = new BehaviorSubject<string | null>(null)
 
-	// Set the list of plans for a specific line
-	setPlans(line: LineType, plans: any[]): void {
-		this.plans[line] = plans
+	// check to see if i really have to sort here or backend
+	setPlans(line: LineType, plans: Plan[]): void {
+		this.plans[line] = plans.sort((a, b) => a.order - b.order)
 	}
 
-	// Get the list of plans for a specific line
-	getPlans(line: LineType): any[] {
+	getPlans(line: LineType): Plan[] {
 		return this.plans[line]
 	}
 
-	// Get the start plan ID for a specific line
 	getStartPlanId(line: LineType): string | null {
 		return this.startPlanIds[line]
 	}
 
-	// Get the end plan ID for a specific line
 	getEndPlanId(line: LineType): string | null {
 		return this.endPlanIds[line]
 	}
 
-	// Select a plan and update the start or end plan ID for a specific line
 	selectPlan(line: LineType, planId: string): void {
 		if (!this.startPlanIds[line]) {
 			this.startPlanIds[line] = planId
@@ -70,7 +65,6 @@ export class PlanService {
 		} else if (!this.endPlanIds[line]) {
 			this.endPlanIds[line] = planId
 			this.endPlanId$.next(this.endPlanIds[line])
-			// Recalculate totals when both start and end plans are selected
 			this.totalBatches[line] = this.calculateTotalBatches(line)
 			this.weightSummaries[line] = this.calculateWeightSummary(line)
 		} else {
@@ -78,17 +72,19 @@ export class PlanService {
 			this.endPlanIds[line] = null
 			this.startPlanId$.next(this.startPlanIds[line])
 			this.endPlanId$.next(this.endPlanIds[line])
+			this.totalBatches[line] = 0
+			this.weightSummaries[line] = []
 		}
 	}
-	// Get the total batches for the selected plans in a specific line
+
 	getTotalBatches(line: LineType): number {
 		return this.totalBatches[line]
 	}
 
-	// Get the weight summary for the selected plans in a specific line
 	getWeightSummary(line: LineType): any[] {
 		return this.weightSummaries[line]
 	}
+
 	calculateTotalBatches(line: LineType): number {
 		const startPlanOrder =
 			this.getPlanOrderById(this.startPlanIds[line], line) ?? 0
@@ -100,7 +96,7 @@ export class PlanService {
 			.filter(
 				(plan) => plan.order >= startPlanOrder && plan.order <= endPlanOrder
 			)
-			.reduce((total, plan) => total + plan.batches, 0)
+			.reduce((total, plan) => total + (plan.batches || 0), 0)
 	}
 
 	calculateWeightSummary(line: LineType): any[] {
@@ -120,10 +116,10 @@ export class PlanService {
 		selectedPlans.forEach((plan) => {
 			plan.weights.forEach(
 				(weight: { component: string; quantity: number }) => {
-					if (!weightSummary[weight.component]) {
-						weightSummary[weight.component] = 0
+					if (!weight.component.startsWith('RN')) {
+						weightSummary[weight.component] =
+							(weightSummary[weight.component] || 0) + weight.quantity
 					}
-					weightSummary[weight.component] += weight.quantity
 				}
 			)
 		})
@@ -134,7 +130,66 @@ export class PlanService {
 		}))
 	}
 
-	// Check if a plan is within the selected range for a specific line
+	getPlansByBatchWithLine(
+		minBatches: number,
+		maxBatches: number
+	): {
+		nextPlans: (Weight & { line: LineType })[]
+		remainingPlans: (Weight & { line: LineType })[]
+	} {
+		const result: {
+			nextPlans: (Weight & { line: LineType })[]
+			remainingPlans: (Weight & { line: LineType })[]
+		} = { nextPlans: [], remainingPlans: [] }
+
+		for (const line of ['can1', 'hydro', 'line3'] as LineType[]) {
+			const { nextPlans, remainingPlans } = this.getPlansByBatch(
+				line,
+				minBatches,
+				maxBatches
+			)
+
+			// Calculate weight summaries and add line information
+			const nextWeightSummary = this.calculateWeightSummaryForPlans(
+				nextPlans
+			).map((weight) => ({
+				...weight,
+				line,
+			}))
+
+			const remainingWeightSummary = this.calculateWeightSummaryForPlans(
+				remainingPlans
+			).map((weight) => ({
+				...weight,
+				line,
+			}))
+
+			result.nextPlans.push(...nextWeightSummary)
+			result.remainingPlans.push(...remainingWeightSummary)
+		}
+
+		return result
+	}
+
+	getAllWeights(): Weight[] {
+		const totalWeights: { [key: string]: number } = {}
+
+		const lines: LineType[] = ['can1', 'hydro', 'line3']
+		lines.forEach((line) => {
+			const lineWeights = this.calculateWeightSummary(line)
+
+			lineWeights.forEach((weight) => {
+				totalWeights[weight.component] =
+					(totalWeights[weight.component] || 0) + weight.total_quantity
+			})
+		})
+
+		return Object.keys(totalWeights).map((component) => ({
+			component,
+			quantity: totalWeights[component],
+		}))
+	}
+
 	isPlanInRange(planOrder: number, line: LineType): boolean {
 		const startPlanOrder = this.getPlanOrderById(this.startPlanIds[line], line)
 		const endPlanOrder = this.getPlanOrderById(this.endPlanIds[line], line)
@@ -147,13 +202,59 @@ export class PlanService {
 		)
 	}
 
-	// Helper to get the plan order by plan ID for a specific line
 	private getPlanOrderById(
 		planId: string | null,
 		line: LineType
 	): number | null {
-		const plans = this.plans[line]
-		const foundPlan = plans.find((plan) => plan.plan_id === planId)
+		const foundPlan = this.plans[line].find((plan) => plan.plan_id === planId)
 		return foundPlan ? foundPlan.order : null
+	}
+
+	resetStartAndEndPlan(line: LineType): void {
+		this.startPlanIds[line] = null
+		this.endPlanIds[line] = null
+
+		this.startPlanId$.next(this.startPlanIds[line])
+		this.endPlanId$.next(this.endPlanIds[line])
+
+		this.totalBatches[line] = 0
+		this.weightSummaries[line] = []
+	}
+
+	getPlansByBatch(line: LineType, minBatches: number, maxBatches: number) {
+		const linePlans = this.plans[line]
+		let currentBatchCount = 0
+		const nextPlans: Plan[] = []
+		const remainingPlans: Plan[] = []
+
+		// Collect next plans up to the required batch count
+		for (const plan of linePlans) {
+			if (currentBatchCount >= minBatches) break
+			nextPlans.push(plan)
+			currentBatchCount += plan.batches
+		}
+
+		// Collect remaining plans after the next set
+		for (const plan of linePlans.slice(nextPlans.length)) {
+			remainingPlans.push(plan)
+		}
+
+		return { nextPlans, remainingPlans }
+	}
+
+	calculateWeightSummaryForPlans(plans: Plan[]): Weight[] {
+		const weightSummary: { [key: string]: number } = {}
+
+		plans.forEach((plan) => {
+			plan.weights.forEach((weight) => {
+				weightSummary[weight.component] =
+					(weightSummary[weight.component] || 0) + weight.quantity
+			})
+		})
+
+		return Object.keys(weightSummary).map((component) => ({
+			component,
+			quantity: weightSummary[component],
+		}))
 	}
 }

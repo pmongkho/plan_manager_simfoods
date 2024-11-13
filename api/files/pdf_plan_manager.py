@@ -6,6 +6,10 @@ import pdfplumber
 from PyPDF2 import PdfReader, PdfWriter
 from enum import Enum
 
+# Regex patterns to match component IDs and quantities
+component_pattern = re.compile(r"(?<=310\s(?:40\.00|75\.00)\s)(\w+)(?:/\d+)?")
+quantity_pattern = re.compile(r"(\d+)(?=\.\d+\s*LB)")
+
 
 # Define a class to handle the PDF plan sorting
 class PdfPlanSorter:

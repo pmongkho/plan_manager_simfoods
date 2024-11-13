@@ -26,8 +26,10 @@ STATICFILES_DIRS = [
         BASE_DIR, "client/dist/client/browser"
     ),  # Replace with your Angular build folder
 ]
-MEDIA_ROOT = os.path.join(BASE_DIR, "/media/")
-
+MEDIA_ROOT = os.path.join(
+    BASE_DIR, "media"
+)  # Set MEDIA_ROOT to a directory in your project
+MEDIA_URL = "/media/"  # Define the media URL
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/

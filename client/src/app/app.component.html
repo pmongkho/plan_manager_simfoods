@@ -1,26 +1,13 @@
 <div class="flex h-screen">
   <!-- Sidebar -->
   <nav class="w-64 bg-gray-800 text-gray-200 flex flex-col space-y-2 p-4">
+
     <a 
-      routerLink="/can1" 
+      routerLink="/plans" 
       routerLinkActive="bg-gray-900 text-white"
       class="px-4 py-2 rounded hover:bg-gray-700 hover:text-white transition-colors duration-300"
     >
-      Can1
-    </a>
-    <a 
-      routerLink="/hydro" 
-      routerLinkActive="bg-gray-900 text-white"
-      class="px-4 py-2 rounded hover:bg-gray-700 hover:text-white transition-colors duration-300"
-    >
-      Hydro
-    </a>
-    <a 
-      routerLink="/line3" 
-      routerLinkActive="bg-gray-900 text-white"
-      class="px-4 py-2 rounded hover:bg-gray-700 hover:text-white transition-colors duration-300"
-    >
-      Line3
+      Plans
     </a>
     <a 
       routerLink="/totals" 
@@ -29,10 +16,38 @@
     >
       Totals
     </a>
+    <a 
+      routerLink="/calculator" 
+      routerLinkActive="bg-gray-900 text-white"
+      class="px-4 py-2 rounded hover:bg-gray-700 hover:text-white transition-colors duration-300"
+    >
+      Calculator
+    </a>
+        <a 
+      routerLink="/dashboard" 
+      routerLinkActive="bg-gray-900 text-white"
+      class="px-4 py-2 rounded hover:bg-gray-700 hover:text-white transition-colors duration-300 flex"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mr-2">
+  <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+</svg>
+Dashboard
+    </a>
+        <a 
+      routerLink="/admin" 
+      routerLinkActive="bg-gray-900 text-white"
+      class="flex px-4 py-2 rounded hover:bg-gray-700 hover:text-white transition-colors duration-300"
+    >
+     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mr-2">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+</svg>
+ Admin
+    </a>
   </nav>
 
   <!-- Content Area -->
-  <div class="flex-1 bg-gray-700 text-white p-8">
-    <router-outlet></router-outlet>
+  <div class=" bg-gray-700 text-white text-left p-8 overflow-scroll w-full">
+   <div><router-outlet></router-outlet></div> 
+
   </div>
 </div>

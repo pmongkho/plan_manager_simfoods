@@ -2,3 +2,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.plan-item {
+	transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.cdk-drag-preview {
+	transition: transform 0.2s ease;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.cdk-drag-placeholder {
+	opacity: 0;
+	transform: scale(0.9);
+	transition: transform 2s ease, opacity 2s ease;
+}
+
+.plan-item.cdk-drag-animating {
+	transition: transform 0.2s ease;
+}

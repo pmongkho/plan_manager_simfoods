@@ -1,0 +1,195 @@
+<div
+	class="calculator-container p-4 rounded-lg shadow-md bg-gray-800 min-h-[90vh] overflow-scroll"
+>
+	<h2 class="text-2xl font-semibold mb-4 text-white">Weight Calculator</h2>
+
+	<div class="flex justify-evenly items-center space-x-6">
+		<!-- Left Side: Display Weights -->
+		<div class="w-full max-w-md">
+			<!-- Import Totals -->
+			<div class="flex justify-end space-x-4">
+				<!-- Import Totals Button -->
+				<button
+					(click)="importTotals()"
+					class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center"
+					title="Upload from Totals"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke-width="1.5"
+						stroke="currentColor"
+						class="size-6 mr-2"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M12 4.5v15m7.5-7.5h-15"
+						/>
+					</svg>
+					Totals
+				</button>
+
+				<!-- Subtract Totals Button -->
+				<button
+					(click)="subtractTotals()"
+					class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700 flex items-center"
+					title="Subtract Totals"
+				>
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mr-2">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+</svg>
+
+					 Totals
+				</button>
+
+				<!-- Reset Button -->
+				<button
+					(click)="resetCalculatorWeights()"
+					class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center"
+					title="Reset Weights"
+				>
+		
+					Reset
+				</button>
+
+			</div>
+
+			<!-- Display Calculated Weights -->
+			<div class="max-h-[65vh] overflow-scroll mt-4">
+				<app-table
+					[tableData]="calculatorWeights"
+					[showPrint]="false"
+					[showCopy]="true"
+				></app-table>
+			</div>
+		</div>
+
+		<!-- Right Side: Calculator (Sticky) -->
+		<div class="w-full max-w-md sticky top-4">
+			<!-- Tabs for Single and Multiple Entries -->
+			<div class="tabs flex space-x-4 mb-4 text-white">
+				<button
+					(click)="selectedTab = 'single'"
+					[class.bg-gray-700]="selectedTab === 'single'"
+					class="py-2 px-4 rounded transition-colors duration-300 hover:bg-gray-700 w-full"
+				>
+					Single
+				</button>
+				<button
+					(click)="selectedTab = 'multiple'"
+					[class.bg-gray-700]="selectedTab === 'multiple'"
+					class="py-2 px-4 rounded transition-colors duration-300 hover:bg-gray-700 w-full"
+				>
+					Multiple
+				</button>
+				<button
+					(click)="selectedTab = 'pdf'"
+					[class.bg-gray-700]="selectedTab === 'pdf'"
+					class="py-2 px-4 rounded transition-colors duration-300 hover:bg-gray-700 w-full"
+				>
+					PDF Upload
+				</button>
+			</div>
+
+			<!-- Single Entry Form -->
+			<div
+				*ngIf="selectedTab === 'single'"
+				class="single-entry-form text-white"
+			>
+				<label class="block mb-2">Component</label>
+				<input
+					type="text"
+					[(ngModel)]="singleEntry.component"
+					placeholder="Enter component name"
+					class="w-full p-2 mb-4 bg-gray-700 text-gray-200 rounded"
+				/>
+
+				<label class="block mb-2">Quantity</label>
+				<input
+					type="number"
+					[(ngModel)]="singleEntry.quantity"
+					placeholder="Enter quantity"
+					class="w-full p-2 mb-4 bg-gray-700 text-gray-200 rounded"
+				/>
+
+				<div class="flex space-x-4">
+					<button
+						(click)="onSingleSubmit('add')"
+						class="w-full py-2 bg-green-500 text-white rounded hover:bg-green-600"
+					>
+						Add
+					</button>
+					<button
+						(click)="onSingleSubmit('subtract')"
+						class="w-full py-2 bg-red-500 text-white rounded hover:bg-red-700"
+					>
+						Subtract
+					</button>
+				</div>
+			</div>
+
+			<!-- Bulk Entry Form -->
+			<div
+				*ngIf="selectedTab === 'multiple'"
+				class="bulk-entry-form text-white"
+			>
+				<label class="block mb-2">Paste Data</label>
+				<textarea
+					[(ngModel)]="bulkData"
+					rows="4"
+					class="w-full mb-4 p-2 bg-gray-700 text-gray-200 rounded"
+					placeholder="Paste data here (component \t quantity)"
+				></textarea>
+
+				<div class="flex space-x-4">
+					<button
+						(click)="onBulkSubmit('add')"
+						class="w-full py-2 bg-green-500 text-white rounded hover:bg-green-600"
+					>
+						Add All
+					</button>
+					<button
+						(click)="onBulkSubmit('subtract')"
+						class="w-full py-2 bg-red-500 text-white rounded hover:bg-red-700"
+					>
+						Subtract All
+					</button>
+				</div>
+			</div>
+
+			<!-- PDF Upload Form -->
+			<div *ngIf="selectedTab === 'pdf'" class="pdf-upload-form text-white">
+				<label class="block mb-2">Select PDF File</label>
+				<input
+					type="file"
+					(change)="onFileSelected($event)"
+					class="w-full mb-4 p-2 bg-gray-700 text-gray-200 rounded"
+				/>
+
+				<!-- Display Extracted Data in Textarea -->
+				<label class="block mb-2">Extracted Data</label>
+				<textarea
+					[(ngModel)]="bulkData"
+					rows="4"
+					class="w-full mb-4 p-2 bg-gray-700 text-gray-200 rounded"
+					placeholder="Extracted data from PDF will appear here..."
+				></textarea>
+
+				<div class="flex space-x-4">
+					<button
+						(click)="onBulkSubmit('add')"
+						class="w-full py-2 bg-green-500 text-white rounded hover:bg-green-600"
+						>Add All</button
+					>
+					<button
+						(click)="onBulkSubmit('subtract')"
+						class="w-full py-2 bg-red-500 text-white rounded hover:bg-red-700"
+						>Subtract All</button
+					>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

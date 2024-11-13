@@ -1,0 +1,75 @@
+<div
+	class="admin-upload-container p-4 rounded-lg shadow-md bg-gray-800 min-h-[90vh]"
+>
+	<h2 class="text-2xl font-semibold mb-4 text-white mx-4">Admin PDF Upload</h2>
+
+	<!-- Upload Form -->
+	<form (submit)="onUpload()" enctype="multipart/form-data">
+		<!-- Weights and Batches Files -->
+		<div class="flex justify-start mx-4"
+			><div>
+				<label class="block text-white mb-2">Weights File</label>
+				<input
+					type="file"
+					(change)="onFileSelected($event, 'weights')"
+					class="mb-4"
+					accept=".pdf"
+			/></div>
+			<div
+				><label class="block text-white mb-2">Batches File</label>
+				<input
+					type="file"
+					(change)="onFileSelected($event, 'batches')"
+					class="mb-4"
+					accept=".pdf" /></div
+		></div>
+
+		<!-- Can1, Hydro, Line3 Text Inputs -->
+		<div class="flex justify-start [&>*]:w-full [&>*]:mx-4">
+			<div>
+				<label class="block text-white mb-2">Can1 Plan Numbers</label>
+				<textarea
+					[(ngModel)]="can1"
+					name="can1"
+					rows="3"
+					class="w-full mb-4 p-2 bg-gray-700 text-gray-200 rounded h-[40vh]"
+				></textarea>
+			</div>
+
+			<div>
+				<label class="block text-white mb-2">Hydro Plan Numbers</label>
+				<textarea
+					[(ngModel)]="hydro"
+					name="hydro"
+					rows="3"
+					class="w-full mb-4 p-2 bg-gray-700 text-gray-200 rounded h-[40vh]"
+				></textarea>
+			</div>
+
+			<div>
+				<label class="block text-white mb-2">Line3 Plan Numbers</label>
+				<textarea
+					[(ngModel)]="line3"
+					name="line3"
+					rows="3"
+					class="w-full mb-4 p-2 bg-gray-700 text-gray-200 rounded h-[40vh]"
+				></textarea>
+			</div>
+		</div>
+		<!-- Submit Button -->
+		<button
+			type="submit"
+			class="w-full py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+		>
+			Upload Database
+		</button>
+	</form>
+
+	<!-- Clear Database Button -->
+	<button
+		(click)="onClearDatabase()"
+		class="w-full mt-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+	>
+		Clear Database
+	</button>
+</div>

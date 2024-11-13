@@ -1,31 +1,63 @@
 import { Injectable } from '@angular/core'
-import { HttpClient, HttpParams } from '@angular/common/http'
+import { HttpClient } from '@angular/common/http'
 import { Observable } from 'rxjs'
 
 @Injectable({
 	providedIn: 'root',
 })
 export class ApiService {
-	private apiUrl = 'http://localhost:8000/api/' // Adjust Django backend URL as needed
+	private apiUrl = 'http://localhost:8000/api/'
 
 	constructor(private http: HttpClient) {}
 
 	// Fetch the list of plans by line type
+	getAllPlans(): Observable<any[]> {
+		return this.http.get<any[]>(`${this.apiUrl}plans/`)
+	}
+	// Fetch the list of plans by line type
 	getPlansByLine(line: string): Observable<any[]> {
-		return this.http.get<any[]>(`${this.apiUrl}plans/${line}/`) // API to get plans for each line
+		return this.http.get<any[]>(`${this.apiUrl}plans/${line}/`)
 	}
 
-	// Fetch the summary based on the selected start and end plan IDs for a specific line
-	getSummary(
-		line: string,
-		startPlanId: string,
-		endPlanId: string
-	): Observable<any> {
-		const params = new HttpParams()
-			.set('start_plan_id', startPlanId)
-			.set('end_plan_id', endPlanId)
-		return this.http.get<any>(`${this.apiUrl}pulllist/${line}/`, {
-			params,
-		})
+	getWeightsByPDF(pdfFile: File): Observable<any> {
+		const formData = new FormData()
+		formData.append('pdf_file', pdfFile)
+		return this.http.post(`${this.apiUrl}upload_weights_pdf/`, formData)
 	}
+
+	// Method to create a new plan
+	createPlan(newPlanData: any): Observable<any> {
+		return this.http.post<any>(`${this.apiUrl}plans/`, newPlanData)
+	}
+
+	// Fetch details of a specific plan by ID
+	getPlanById(planId: string): Observable<any> {
+		return this.http.get<any>(`${this.apiUrl}plans/${planId}/`)
+	}
+
+	// Edit a plan
+	editPlan(planId: string, updatedPlanData: any): Observable<any> {
+		return this.http.put<any>(`${this.apiUrl}plans/${planId}/`, updatedPlanData)
+	}
+
+	// Update order of plans
+	updatePlanOrder(
+		plans: { plan_id: string; order: number }[]
+	): Observable<any> {
+		return this.http.put<any>(`${this.apiUrl}plans/update-order/`, { plans })
+	}
+
+	// Delete a plan
+	deletePlan(planId: string): Observable<any> {
+		return this.http.delete<any>(`${this.apiUrl}plans/${planId}/`)
+	}
+
+	uploadPdfData(data: FormData): Observable<any> {
+		return this.http.post(`${this.apiUrl}admin/upload-db/`, data)
+	}
+
+	clearDatabase(): Observable<any> {
+		return this.http.delete(`${this.apiUrl}admin/clear-database/`)
+	}
+
 }

@@ -11,6 +11,7 @@ pdfplumber = "*"
 pypdf2 = "*"
 django-cors-headers = "*"
 django-redis = "*"
+gunicorn = "*"
 
 [dev-packages]
 

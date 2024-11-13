@@ -1,1 +1,72 @@
-<p>dashboard works!</p>
+<div class="dashboard-container p-4 min-h-[85vh] bg-gray-800 text-white">
+  <h2 class="text-2xl font-semibold mb-4">Next Plans Summary</h2>
+
+  <!-- Tabs -->
+  <div class="tabs mb-4">
+    <button
+      (click)="selectedTab = 'nextPlans'"
+      [class.bg-gray-600]="selectedTab === 'nextPlans'"
+      class="px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-700"
+    >
+      Next Plans
+    </button>
+    <button
+      (click)="selectedTab = 'nextPlansTotals'"
+      [class.bg-gray-600]="selectedTab === 'nextPlansTotals'"
+      class="px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-700"
+    >
+      Next Plans Totals
+    </button>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="filter-section mb-4 flex space-x-4">
+    <label><input type="checkbox" [(ngModel)]="showCan1" /> Can1</label>
+    <label><input type="checkbox" [(ngModel)]="showHydro" /> Hydro</label>
+    <label><input type="checkbox" [(ngModel)]="showLine3" /> Line3</label>
+  </div>
+
+  <!-- Next Plans Table -->
+  <div *ngIf="selectedTab === 'nextPlans'" class="next-plans">
+    <table class="min-w-full bg-gray-700 rounded-lg overflow-hidden">
+      <thead class="bg-gray-600">
+        <tr>
+          <th class="p-3 text-left">Component</th>
+          <th class="p-3 text-left">Quantity</th>
+          <th class="p-3 text-left">Line</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let plan of filterPlansByLine(nextPlans)" class="border-b border-gray-800">
+          <td class="p-3">{{ plan.component }}</td>
+          <td class="p-3">{{ plan.quantity }}</td>
+          <td class="p-3 capitalize">{{ plan.line }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Next Plans Totals Table -->
+  <div *ngIf="selectedTab === 'nextPlansTotals'" class="next-plans-totals">
+    <!-- <table class="min-w-full bg-gray-700 rounded-lg overflow-hidden">
+      <thead class="bg-gray-600">
+        <tr>
+          <th class="p-3 text-left">Component</th>
+          <th class="p-3 text-left">Total Quantity</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let summary of nextPlansTotals" class="border-b border-gray-800">
+          <td class="p-3">{{ summary.component }}</td>
+          <td class="p-3">{{ summary.quantity }}</td>
+        </tr>
+      </tbody>
+    </table> -->
+			<app-table
+					[tableData]="nextPlansTotals"
+					[showPrint]="false"
+					[showCopy]="true"
+				></app-table>
+    
+  </div>
+</div>
