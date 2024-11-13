@@ -38,7 +38,7 @@ MEDIA_URL = "/media/"  # Define the media URL
 SECRET_KEY = "django-insecure-$x90a0=p#c)!uvx0i+3!da!@nzv)!4#+f_nme=dm0vq$8u8e62"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -102,7 +102,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "postgres",  # Database name
         "USER": "pmongkho",
-        "PASSWORD": "",  # Replace with your actual password
+        "PASSWORD": "Idontknow1",  # Replace with your actual password
         "HOST": "plan-manager.postgres.database.azure.com",
         "PORT": "5432",
         "OPTIONS": {
