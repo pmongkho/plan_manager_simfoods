@@ -19,7 +19,7 @@ RUN pip install -r requirements.txt
 COPY . /app
 
 # Collect static files from Angular build
-COPY --from=frontend-builder /app/client/dist/client /app/staticfiles
+COPY --from=frontend-builder /app/client/dist/client/browser /app/staticfiles
 
 # Set environment variables for Django
 ENV DJANGO_SETTINGS_MODULE=project.settings 
