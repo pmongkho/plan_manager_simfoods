@@ -19,6 +19,7 @@ STATIC_URL = "/static/"
 
 # Directory for static files to be collected in production
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Additional static file directories (your Angular build files go here)
 STATICFILES_DIRS = [
@@ -73,6 +74,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Add this for static file handling
 ]
 
 ROOT_URLCONF = "project.urls"
