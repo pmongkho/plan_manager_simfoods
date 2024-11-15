@@ -81,8 +81,8 @@ ROOT_URLCONF = "project.urls"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
+    "https://simfoodsplanmanager-aqbeanc6aqejbbf0.centralus-01.azurewebsites.net",
 ]
-
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
