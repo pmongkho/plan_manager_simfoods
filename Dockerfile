@@ -9,6 +9,10 @@ RUN npm install
 COPY client/ .  
 RUN ng build --configuration production
 
+# Collect static files for Django
+RUN python manage.py collectstatic --noinput
+
+
 # Stage 2: Set up Django backend
 FROM python:3.12 AS backend
 WORKDIR /app
