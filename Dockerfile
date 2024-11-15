@@ -9,10 +9,6 @@ RUN npm install
 COPY client/ .  
 RUN ng build --configuration production
 
-# Collect static files for Django
-RUN python manage.py collectstatic --noinput
-
-
 # Stage 2: Set up Django backend
 FROM python:3.12 AS backend
 WORKDIR /app
@@ -24,6 +20,9 @@ COPY . /app
 
 # Collect static files from Angular build
 COPY --from=frontend-builder /app/client/dist/client/browser /app/staticfiles
+
+# Collect Django static files
+RUN python manage.py collectstatic --noinput
 
 # Set environment variables for Django
 ENV DJANGO_SETTINGS_MODULE=project.settings 
