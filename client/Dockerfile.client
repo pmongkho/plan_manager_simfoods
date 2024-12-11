@@ -1,0 +1,23 @@
+# Use Node.js for building Angular
+FROM node:22 AS build
+WORKDIR /app
+
+# Copy only the necessary files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the Angular client files
+COPY . .
+
+# Build Angular app
+RUN npm run build -- --output-path=dist/client/browser --configuration production
+
+# Use Nginx to serve the built Angular app
+FROM nginx:alpine
+COPY --from=build /app/dist/client/browser /usr/share/nginx/html
+
+# Expose port 80
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

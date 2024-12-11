@@ -23,7 +23,7 @@ export class TotalsComponent implements OnInit {
 	) {}
 
 	ngOnInit(): void {
-		this.totalWeights = this.planService.getAllWeights()
+		this.totalWeights = this.planService.getAllWeights(this.planService.selectedPlans)
 		this.cdr.detectChanges()
 	}
 

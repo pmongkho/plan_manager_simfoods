@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core'
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core'
 import {
 	CdkDragDrop,
 	DragDropModule,
@@ -9,7 +9,7 @@ import { ApiService } from '../../services/api.service'
 import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
 import { Plan } from '../../models/plan.model'
-import {TableComponent} from '../table/table.component'
+import { TableComponent } from '../table/table.component'
 
 @Component({
 	selector: 'app-generic-plan',
@@ -19,6 +19,7 @@ import {TableComponent} from '../table/table.component'
 	styleUrls: ['./generic-plan.component.css'],
 })
 export class GenericPlanComponent implements OnInit {
+	@Input() targetVariable: 'selectedPlans' | 'nextPlans' = 'selectedPlans'
 	@Input() planType: LineType = 'can1'
 	plans: Plan[] = []
 	totalBatches: number = 0
@@ -29,16 +30,19 @@ export class GenericPlanComponent implements OnInit {
 
 	constructor(
 		protected planService: PlanService,
-		private apiService: ApiService
+		private apiService: ApiService,
+		private cdr: ChangeDetectorRef
 	) {}
 
 	ngOnInit(): void {
 		this.loadPlans()
+		this.updateTotals()
+		this.cdr.detectChanges() // Force UI update
 	}
 
 	loadPlans() {
 		this.loading = true
-		const storedPlans = this.planService.getPlans(this.planType)
+		const storedPlans = this.planService.plans[this.planType]
 
 		if (storedPlans.length > 0) {
 			this.plans = storedPlans
@@ -60,21 +64,54 @@ export class GenericPlanComponent implements OnInit {
 		}
 	}
 
-	// Update total batches and weight summary only when necessary
-	updateTotals(): void {
-		this.totalBatches = this.planService.getTotalBatches(this.planType)
-		this.weightSummary = this.planService.getWeightSummary(this.planType)
+	togglePlanSelection(
+		plan: Plan,
+		targetVariable: 'selectedPlans' | 'nextPlans'
+	): void {
+		this.planService.togglePlansInRange(
+			this.planType,
+			plan.plan_id,
+			targetVariable
+		)
+		this.updateTotals() // Ensure the UI updates totals after toggling selection
+		this.cdr.detectChanges() // Force UI update
 	}
 
-	selectPlan(planId: string): void {
-		this.planService.selectPlan(this.planType, planId)
+	toggleTargetVariable() {
+		this.targetVariable =
+			this.targetVariable === 'selectedPlans' ? 'nextPlans' : 'selectedPlans'
 		this.updateTotals()
+		this.cdr.detectChanges() // Force UI update
+	}
+
+	isPlanSelected(plan: Plan): boolean {
+		return this.planService.selectedPlans[this.planType]?.some(
+			(selectedPlan) => selectedPlan.plan_id === plan.plan_id
+		)
+	}
+
+	isPlanInNextPlans(plan: Plan): boolean {
+		return this.planService.nextPlans[this.planType]?.some(
+			(p) => p.plan_id === plan.plan_id
+		)
+	}
+
+	// Update total batches and weight summary only when necessary
+	updateTotals(): void {
+		const currentPlans =
+			this.targetVariable === 'selectedPlans'
+				? this.planService.selectedPlans[this.planType]
+				: this.planService.nextPlans[this.planType]
+
+		this.totalBatches = this.planService.getTotalBatches(currentPlans)
+		this.weightSummary = this.planService.getWeightSummaryForLine(currentPlans)
+		this.cdr.detectChanges() // Ensure the UI updates properly
 	}
 
 	resetSelection(): void {
-		this.planService.resetStartAndEndPlan(this.planType)
-		this.totalBatches = 0
-		this.weightSummary = []
+		this.planService.resetStartAndEndPlan(this.planType, this.targetVariable)
+		this.updateTotals()
+		this.cdr.detectChanges() // Force UI update
 	}
 
 	// Open modal to view/edit the selected plan
@@ -175,6 +212,4 @@ export class GenericPlanComponent implements OnInit {
 				console.error('Failed to copy weights data', err)
 			})
 	}
-
-
 }

@@ -1,0 +1,24 @@
+# Use Python image
+FROM python:3.12
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+# Copy the server code
+COPY . .
+
+# Collect static files
+
+# Set environment variables
+ENV DJANGO_SETTINGS_MODULE=project.settings
+ENV PYTHONUNBUFFERED=1
+
+# Expose port 8000
+EXPOSE 8000
+
+# Run Django app
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "project.wsgi:application"]

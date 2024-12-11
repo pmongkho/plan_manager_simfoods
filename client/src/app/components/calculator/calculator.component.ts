@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
 import { TableComponent } from '../table/table.component'
 import { ApiService } from '../../services/api.service'
-import {Weight} from '../../models/plan.model'
+import { Weight } from '../../models/plan.model'
 
 @Component({
 	selector: 'app-calculator',
@@ -53,9 +53,7 @@ export class CalculatorComponent implements OnInit {
 
 			// Format data for the bulkData textarea (e.g., "Component\tQuantity")
 			this.bulkData = extractedWeights
-				.map(
-					({ component, quantity }) => `${component}\t${quantity}`
-				)
+				.map(({ component, quantity }) => `${component}\t${quantity}`)
 				.join('\n')
 
 			console.log('Extracted weights and populated bulkData:', this.bulkData)
@@ -63,7 +61,9 @@ export class CalculatorComponent implements OnInit {
 	}
 
 	importTotals(): void {
-		const importedWeights = this.planService.getAllWeights()
+		const importedWeights = this.planService.getAllWeights(
+			this.planService.selectedPlans
+		)
 
 		importedWeights.forEach((importedWeight) => {
 			const existingWeight = this.calculatorWeights.find(
@@ -83,7 +83,9 @@ export class CalculatorComponent implements OnInit {
 	}
 
 	subtractTotals(): void {
-		const importedWeights = this.planService.getAllWeights()
+		const importedWeights = this.planService.getAllWeights(
+			this.planService.selectedPlans
+		)
 
 		importedWeights.forEach((importedWeight) => {
 			const existingWeight = this.calculatorWeights.find(
